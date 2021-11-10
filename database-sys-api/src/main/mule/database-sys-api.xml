@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
+    <http:listener-config name="database-sys-api-httpListenerConfig">
+        <http:listener-connection host="${http.host}" port="${http.port}" />
+    </http:listener-config>
+    <apikit:config name="database-sys-api-config" api="resource::890a7cfa-ff4d-42f3-ab25-b43be613560d:database-sys-api:1.0.2:raml:zip:database-sys-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <db:config name="Database_Config" doc:name="Database Config" doc:id="8bb12a5f-e3b9-498a-904a-2f0e87ff2fca" >
+		<db:my-sql-connection host="${db.host}" port="${db.port}" user="${secure::db.user}" password="${secure::db.password}" database="${db.database}" />
+	</db:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="05e6485a-8bcf-4df3-966f-d0ebb4e1fc3d" file="${env}.properties" />
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="a2bd9422-a3ea-43b8-ae39-43abcf4463c8" file="${env}.secure.properties" key="${key}">
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+	<configuration doc:name="Configuration" doc:id="2c45c950-f127-4f4f-8e51-33274887f22a" defaultErrorHandler-ref="global-exception-handlingError_Handler"/>
+	<api-gateway:autodiscovery apiId="17411496" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="3e167933-4c62-4c40-a39e-e173a58020f4" flowRef="database-sys-api-main" />
+	<flow name="database-sys-api-main">
+        <http:listener config-ref="database-sys-api-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <flow-ref doc:name="Initial_variables" doc:id="30372dd8-f98d-4dcd-961f-e2f3a79fbff3" name="Initial-attribures"/>
+		<apikit:router config-ref="database-sys-api-config" />
+    </flow>
+    <flow name="delete:\removecustomer:database-sys-api-config">
+        <logger level="INFO" doc:name="Logger" doc:id="8cd5f14a-10cd-4c5f-9ec3-602e2e4c0bdf" message="request recieved successfully"/>
+		<db:delete doc:name="Delete" doc:id="2c630a08-8452-4728-adf9-eb682d061624" config-ref="Database_Config">
+			<db:sql ><![CDATA[${db.delete}]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	phone : attributes.queryParams.phone
+}]]]></db:input-parameters>
+		</db:delete>
+		<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "customer deleted successfully"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="patch:\updatecustomer:application\json:database-sys-api-config">
+        <logger level="INFO" doc:name="Logger" doc:id="40404c55-944b-4a0e-b83c-6a3694484b5a" message="request received successfully"/>
+		<db:update doc:name="Update" doc:id="20a4d816-6caa-41f2-866d-af3248d263d8" config-ref="Database_Config">
+			<db:sql ><![CDATA[${db.update}]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	phone : payload.phone,
+	id : payload.id
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "phone number updated successfully"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\getallcustomers:database-sys-api-config">
+        <logger level="INFO" doc:name="Logger" doc:id="9818f9fe-bb00-4dd9-b4b4-e0cbe41d93f7" message="Request received by database"/>
+		<db:select doc:name="Select" doc:id="3bf425a4-782f-407d-b4e5-21fc8a5aa189" config-ref="Database_Config">
+			<db:sql ><![CDATA[${db.selectall}]]></db:sql>
+		</db:select>
+		<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\getcustomerbyid:database-sys-api-config">
+        <logger level="INFO" doc:name="Logger" doc:id="dc6f5400-1ed8-4586-8c2e-4067e6d1069a" message="request recieved successfully"/>
+		<db:select doc:name="Select" doc:id="97ada2a8-f297-48fa-9d58-0895414b60a3" config-ref="Database_Config">
+			<db:sql ><![CDATA[${db.select}]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	id : attributes.queryParams.id
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\createcustomer:application\json:database-sys-api-config">
+        <logger level="INFO" doc:name="Logger" doc:id="553d5f59-5cdd-49be-bda6-cb261a4bc049" message="#[payload]"/>
+		<db:insert doc:name="Insert" doc:id="9e515ada-05fd-43ca-ade0-259a612b2e75" config-ref="Database_Config">
+			<db:sql ><![CDATA[${db.insert}]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	name : payload.name,
+	email : payload.email,
+	adress : payload.adress,
+	phone : payload.phone
+	
+}]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "customer created successfully"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+</mule>
