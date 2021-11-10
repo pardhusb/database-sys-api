@@ -27,11 +27,11 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
                 <http:headers>#[vars.outboundHeaders default {}]</http:headers>
             </http:error-response>
         </http:listener>
-        <flow-ref doc:name="Initial_variables" doc:id="30372dd8-f98d-4dcd-961f-e2f3a79fbff3" name="Initial-attribures"/>
+		<flow-ref doc:name="initialize variables" doc:id="5f32dd5d-1475-4d0a-a337-7ee6af110a4e" name="Initial-attribures"/>
+		<flow-ref doc:name="Flow Reference" doc:id="ec15fa4c-39be-4144-89e8-35798aacfac1" name="common-logger"/>
 		<apikit:router config-ref="database-sys-api-config" />
     </flow>
     <flow name="delete:\removecustomer:database-sys-api-config">
-        <logger level="INFO" doc:name="Logger" doc:id="8cd5f14a-10cd-4c5f-9ec3-602e2e4c0bdf" message="request recieved successfully"/>
 		<db:delete doc:name="Delete" doc:id="2c630a08-8452-4728-adf9-eb682d061624" config-ref="Database_Config">
 			<db:sql ><![CDATA[${db.delete}]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{
@@ -48,9 +48,9 @@ output application/json
 }]]></ee:set-payload>
             </ee:message>
         </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="248c9f94-a077-407a-8efb-d93b3540fb26" name="common-logger"/>
     </flow>
     <flow name="patch:\updatecustomer:application\json:database-sys-api-config">
-        <logger level="INFO" doc:name="Logger" doc:id="40404c55-944b-4a0e-b83c-6a3694484b5a" message="request received successfully"/>
 		<db:update doc:name="Update" doc:id="20a4d816-6caa-41f2-866d-af3248d263d8" config-ref="Database_Config">
 			<db:sql ><![CDATA[${db.update}]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{
@@ -68,9 +68,9 @@ output application/json
 }]]></ee:set-payload>
             </ee:message>
         </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="22c4854b-8840-4fa0-9571-4cd26d448d9d" name="common-logger"/>
     </flow>
     <flow name="get:\getallcustomers:database-sys-api-config">
-        <logger level="INFO" doc:name="Logger" doc:id="9818f9fe-bb00-4dd9-b4b4-e0cbe41d93f7" message="Request received by database"/>
 		<db:select doc:name="Select" doc:id="3bf425a4-782f-407d-b4e5-21fc8a5aa189" config-ref="Database_Config">
 			<db:sql ><![CDATA[${db.selectall}]]></db:sql>
 		</db:select>
@@ -82,9 +82,9 @@ output application/json
 payload]]></ee:set-payload>
             </ee:message>
         </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="fecd1466-c64d-4809-ad8d-841b3b6a86dc" name="common-logger"/>
     </flow>
     <flow name="get:\getcustomerbyid:database-sys-api-config">
-        <logger level="INFO" doc:name="Logger" doc:id="dc6f5400-1ed8-4586-8c2e-4067e6d1069a" message="request recieved successfully"/>
 		<db:select doc:name="Select" doc:id="97ada2a8-f297-48fa-9d58-0895414b60a3" config-ref="Database_Config">
 			<db:sql ><![CDATA[${db.select}]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{
@@ -99,9 +99,9 @@ output application/json
 payload]]></ee:set-payload>
             </ee:message>
         </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="925bba5d-14c3-43f7-adee-f688d86981fd" name="common-logger"/>
     </flow>
     <flow name="post:\createcustomer:application\json:database-sys-api-config">
-        <logger level="INFO" doc:name="Logger" doc:id="553d5f59-5cdd-49be-bda6-cb261a4bc049" message="#[payload]"/>
 		<db:insert doc:name="Insert" doc:id="9e515ada-05fd-43ca-ade0-259a612b2e75" config-ref="Database_Config">
 			<db:sql ><![CDATA[${db.insert}]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{
@@ -122,5 +122,6 @@ output application/json
 }]]></ee:set-payload>
             </ee:message>
         </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="41e9fe17-9319-4ab7-b2ad-d165ec99722e" name="common-logger"/>
     </flow>
 </mule>

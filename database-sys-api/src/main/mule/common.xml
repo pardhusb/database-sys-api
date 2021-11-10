@@ -5,7 +5,10 @@
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
 	<flow name="Initial-attribures" doc:id="34e05220-a8b5-4531-9eb1-650afdd03cf2" >
 		<set-variable value="#[attributes.headers.client_id]" doc:name="client_id" doc:id="9b14652e-dd57-44c3-a7aa-d0cf501c37c4" variableName="client_id"/>
-		<set-variable value="#[attributes.headers.correlation_id]" doc:name="correlation_id" doc:id="75510f2f-fcbb-4c03-ad2b-5e725fa5b5ed" variableName="correlation_id"/>
+		<set-variable value="#[attributes.headers.client_secret]" doc:name="client_secret" doc:id="f95ad5e3-af18-4176-81b8-e9a60412416b" variableName="client_secret"/>
 		<set-variable value="#[attributes.headers.App_name]" doc:name="App_name" doc:id="7e53b0c2-acd6-4aa4-9ac4-3e893d6854a4" variableName="App_name"/>
 	</flow>
+	<sub-flow name="common-logger" doc:id="8004068f-3a2e-429d-91b5-eab5ce0e9a59" >
+		<logger level="INFO" doc:name="Logger" doc:id="8a297ce3-6bf0-4af5-83e8-1d7493c5a66c" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"Request processing for client" : vars.client_id default "",&#10;	"Unique message Id" : vars.client_secret default "",&#10;	"From application" : vars.App_name default "",&#10;	"Payload is " : payload default ""&#10;}]'/>
+	</sub-flow>
 </mule>
